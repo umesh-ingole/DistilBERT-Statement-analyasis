@@ -6,7 +6,11 @@ Simplified version that works without PyTorch initially
 
 import logging
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify  
+
+from .predict import SentimentPredictor
+from .src.config import DEVICE, SEED, BEST_MODEL_DIR
+from .src.utils import set_seed
 
 # Configure logging
 logging.basicConfig(

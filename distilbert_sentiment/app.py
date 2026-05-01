@@ -4,7 +4,12 @@ from pathlib import Path
 from typing import Optional
 
 from predict import SentimentPredictor
-from src.config import DEVICE, SEED, BEST_MODEL_DIR
+from src.config import DEVICE, SEED, BEST_MODEL_DIR  
+
+
+from .predict import SentimentPredictor
+from .src.config import DEVICE, SEED, BEST_MODEL_DIR
+from .src.utils import set_seed
 
 logging.basicConfig(
     level=logging.INFO,
