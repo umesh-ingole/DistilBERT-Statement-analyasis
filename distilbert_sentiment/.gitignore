@@ -1,0 +1,49 @@
+# Virtual environments
+.venv/
+venv/
+venv*/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data
+data/
+*.csv
+*.xlsx
+
+# Models
+models/checkpoints/
+models/best_model/
+*.pt
+*.pth
+*.bin
+
+# Outputs
+outputs/
+*.log
+*.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Other
+.env
+*.egg-info/
+dist/
+build/

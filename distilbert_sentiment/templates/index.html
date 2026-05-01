@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DistilBERT Sentiment Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-badge.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
+
+        .result-section {
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .result-box.positive {
+            border-left-color: #28a745;
+            background: #f0fdf4;
+        }
+
+        .result-box.negative {
+            border-left-color: #dc3545;
+            background: #fdf4f4;
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .sentiment {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .sentiment.positive {
+            color: #28a745;
+        }
+
+        .sentiment.negative {
+            color: #dc3545;
+        }
+
+        .confidence {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .probability-bar {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .probability-item {
+            margin-bottom: 10px;
+        }
+
+        .probability-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .probability-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .probability-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .error-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-box.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #0c5aa0;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .info-box.show {
+            display: block;
+        }
+
+        .batch-input {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .api-info {
+            font-size: 11px;
+            color: #bbb;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            button {
+                padding: 10px 15px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🤗</div>
+            <h1>Sentiment Analysis</h1>
+            <p class="subtitle">DistilBERT Powered</p>
+            <div id="status" class="status-badge ready">
+                ✓ Model Ready
+            </div>
+        </header>
+
+        <div class="input-section">
+            <label for="textInput">Enter your text:</label>
+            <textarea
+                id="textInput"
+                placeholder="Type something you'd like to analyze for sentiment... (3-512 characters)"
+                maxlength="512"
+            ></textarea>
+            <div class="char-count">
+                <span id="charCount">0</span> / 512 characters
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" id="predictBtn">
+                <span id="btnText">Analyze Sentiment</span>
+            </button>
+            <button class="btn-secondary" id="clearBtn">Clear</button>
+        </div>
+
+        <div class="error-box" id="errorBox"></div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px;">Analyzing...</p>
+        </div>
+
+        <div class="result-section" id="resultSection">
+            <div class="result-box" id="resultBox">
+                <div class="result-label">Sentiment Analysis Result</div>
+                <div class="sentiment" id="sentimentLabel"></div>
+                <div class="confidence">
+                    Confidence: <strong id="confidenceScore"></strong>
+                </div>
+                <div class="probability-bar">
+                    <div class="probability-item">
+                        <div class="probability-label">
+                            <span>Negative</span>
+                            <span id="negProb"></span>
+                        </div>
+                        <div class="probability-bar-bg">
+                            <div class="probability-bar-fill" id="negBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="probability-item">
+                        <div class="probability-label">
+                            <span>Positive</span>
+                            <span id="posProb"></span>
+                        </div>
+                        <div class="probability-bar-bg">
+                            <div class="probability-bar-fill" id="posBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box" id="infoBox"></div>
+
+        <footer>
+            <div>Powered by DistilBERT • Flask API</div>
+            <div class="api-info" style="margin-top: 8px;">
+                Available endpoints: /api/predict, /api/predict_batch, /api/status
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const textInput = document.getElementById('textInput');
+        const charCount = document.getElementById('charCount');
+        const predictBtn = document.getElementById('predictBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const errorBox = document.getElementById('errorBox');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('resultSection');
+        const resultBox = document.getElementById('resultBox');
+        const sentimentLabel = document.getElementById('sentimentLabel');
+        const confidenceScore = document.getElementById('confidenceScore');
+        const negProb = document.getElementById('negProb');
+        const posProb = document.getElementById('posProb');
+        const negBar = document.getElementById('negBar');
+        const posBar = document.getElementById('posBar');
+        const statusBadge = document.getElementById('status');
+        const btnText = document.getElementById('btnText');
+
+        // Update character count
+        textInput.addEventListener('input', () => {
+            charCount.textContent = textInput.value.length;
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            textInput.value = '';
+            charCount.textContent = '0';
+            resultSection.classList.remove('show');
+            errorBox.classList.remove('show');
+            textInput.focus();
+        });
+
+        // Predict button
+        predictBtn.addEventListener('click', async () => {
+            const text = textInput.value.trim();
+
+            // Validate
+            if (!text) {
+                showError('Please enter some text to analyze');
+                return;
+            }
+
+            if (text.length < 3) {
+                showError('Text must be at least 3 characters');
+                return;
+            }
+
+            // Make request
+            await predict(text);
+        });
+
+        // Allow Enter key to predict
+        textInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                predictBtn.click();
+            }
+        });
+
+        async function predict(text) {
+            errorBox.classList.remove('show');
+            resultSection.classList.remove('show');
+            loading.classList.add('show');
+            predictBtn.disabled = true;
+            btnText.textContent = 'Analyzing...';
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    showError(data.error || 'Prediction failed');
+                    return;
+                }
+
+                // Display result
+                const label = data.label;
+                const confidence = (data.confidence * 100).toFixed(2);
+                const probs = data.probabilities;
+
+                sentimentLabel.textContent = label;
+                resultBox.classList.remove('positive', 'negative');
+                resultBox.classList.add(label.toLowerCase());
+
+                confidenceScore.textContent = confidence + '%';
+                negProb.textContent = (probs.NEGATIVE * 100).toFixed(1) + '%';
+                posProb.textContent = (probs.POSITIVE * 100).toFixed(1) + '%';
+
+                negBar.style.width = (probs.NEGATIVE * 100) + '%';
+                posBar.style.width = (probs.POSITIVE * 100) + '%';
+
+                resultSection.classList.add('show');
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error: ' + error.message);
+            } finally {
+                loading.classList.remove('show');
+                predictBtn.disabled = false;
+                btnText.textContent = 'Analyze Sentiment';
+            }
+        }
+
+        function showError(message) {
+            errorBox.textContent = message;
+            errorBox.classList.add('show');
+        }
+
+        // Check status on load
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                if (data.model_loaded) {
+                    statusBadge.textContent = '✓ Model Ready';
+                    statusBadge.classList.remove('error');
+                    statusBadge.classList.add('ready');
+                    textInput.disabled = false;
+                    predictBtn.disabled = false;
+                } else {
+                    statusBadge.textContent = '⚠ Model Loading...';
+                    statusBadge.classList.remove('ready');
+                    statusBadge.classList.add('error');
+                    textInput.disabled = true;
+                    predictBtn.disabled = true;
+                    showError('Model is still loading. Please wait...');
+                }
+            } catch (error) {
+                statusBadge.textContent = '✗ Model Error';
+                statusBadge.classList.remove('ready');
+                statusBadge.classList.add('error');
+                textInput.disabled = true;
+                predictBtn.disabled = true;
+                showError('Unable to connect to the server');
+            }
+        }
+
+        // Initial status check
+        checkStatus();
+        textInput.focus();
+    </script>
+</body>
+</html>
