@@ -2,7 +2,9 @@
 
 torch
 
-transformers>=4.39,<5.0
+--extra-index-url https://pypi.org/simple
+
+transformers==4.41.2
 huggingface-hub>=0.19,<1.0
 
 numpy<2.0
