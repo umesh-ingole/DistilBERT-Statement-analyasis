@@ -1,13 +1,12 @@
 --index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
 
 torch
-
---extra-index-url https://pypi.org/simple
 
 transformers==4.41.2
 huggingface-hub>=0.19,<1.0
 
-numpy<2.0
+numpy==1.26.4
 
 flask>=2.3,<3.0
 gunicorn>=21.0
