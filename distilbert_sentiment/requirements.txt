@@ -5,7 +5,7 @@
 # ============================================================================
 
 # Core ML Framework - CPU optimized
-torch==2.1.2
+torch==2.11.0
 
 # NLP Transformers
 transformers==4.39.3
